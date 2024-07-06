@@ -1,11 +1,6 @@
 package by.rimza.library.repositories.DAO;
 
-import by.rimza.library.repositories.connectionDB.ConnectionToDB;
-import lombok.SneakyThrows;
 
-import java.sql.Connection;
-import java.sql.Statement;
-import java.util.Collection;
 import java.util.List;
 
 public interface DAO<E> {
