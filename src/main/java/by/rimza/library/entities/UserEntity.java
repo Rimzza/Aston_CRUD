@@ -2,6 +2,8 @@ package by.rimza.library.entities;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -13,12 +15,6 @@ public class UserEntity {
     private String secondName;
     private String patronymic;
     private int age;
+    private List<BookEntity> books;
 
-   /* @Builder
-    public UserEntity(String firstName, String secondName, String patronymic, int age) {
-        this.firstName = firstName;
-        this.secondName = secondName;
-        this.patronymic = patronymic;
-        this.age = age;
-    }*/
 }

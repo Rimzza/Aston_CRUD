@@ -1,6 +1,8 @@
 package by.rimza.library.repositories.DAO;
 
+import by.rimza.library.entities.BookEntity;
 import by.rimza.library.entities.UserEntity;
+import by.rimza.library.repositories.connectionDB.ConnectionToDB;
 import by.rimza.library.repositories.connectionDB.PrepareStatementDB;
 import by.rimza.library.repositories.connectionDB.StatementDB;
 import by.rimza.library.repositories.mappers.MapperUtils;
@@ -26,9 +28,11 @@ public class UserDAO implements DAO<UserEntity> {
         List<UserEntity> users = new ArrayList<>();
         Statement statement = statementDB.createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT * from users");
+
         while (resultSet.next()) {
             users.add(MapperUtils.toUserEntity(resultSet));
         }
+
         return users;
     }
 
@@ -38,6 +42,7 @@ public class UserDAO implements DAO<UserEntity> {
         checkPrStatement();
         PreparedStatement ps = prStatement.updateUser(id, updatedUser);
         ps.executeUpdate();
+
         return true;
     }
 
@@ -46,20 +51,30 @@ public class UserDAO implements DAO<UserEntity> {
     public UserEntity read(int id) {
         checkPrStatement();
         UserEntity user = null;
+        List<BookEntity> books = new ArrayList<>();
         PreparedStatement ps = prStatement.readUser(id);
         ResultSet resultSet = ps.executeQuery();
-        while (resultSet.next()) {
-            user = MapperUtils.toUserEntity(resultSet);
+
+        resultSet.next();
+        user = MapperUtils.toUserEntity(resultSet);
+
+        do {
+            books.add(MapperUtils.toBookEntity(resultSet, true));
+        } while (resultSet.next());
+
+        if (!books.isEmpty()) {
+            user.setBooks(books);
         }
         return user;
     }
 
     @SneakyThrows
-    public UserEntity read(String firstName){
+    public UserEntity read(String firstName) {
         checkPrStatement();
         UserEntity user = null;
         PreparedStatement ps = prStatement.readUser(firstName);
         ResultSet resultSet = ps.executeQuery();
+
         while (resultSet.next()) {
             user = MapperUtils.toUserEntity(resultSet);
         }
@@ -72,7 +87,10 @@ public class UserDAO implements DAO<UserEntity> {
     public boolean delete(int id) {
         checkPrStatement();
         PreparedStatement ps = prStatement.deleteUser(id);
+        PreparedStatement ps1 = prStatement.removeOwnerByIdOwner(id);
+        ps1.executeUpdate();
         ps.executeUpdate();
+
         return true;
     }
 
@@ -82,6 +100,7 @@ public class UserDAO implements DAO<UserEntity> {
         checkPrStatement();
         PreparedStatement ps = prStatement.createUser(userEntity);
         ps.executeUpdate();
+
         return true;
     }
 
@@ -90,6 +109,8 @@ public class UserDAO implements DAO<UserEntity> {
     public void clear() {
         checkStatement();
         statementDB.createStatement().executeUpdate("truncate table users cascade ");
+        statementDB.createStatement().executeUpdate("alter sequence users_id_seq restart with 1");
+
     }
 
     private void checkStatement() {

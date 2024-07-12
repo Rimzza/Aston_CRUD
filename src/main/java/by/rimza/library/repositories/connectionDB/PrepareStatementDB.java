@@ -4,6 +4,7 @@ import by.rimza.library.entities.BookEntity;
 import by.rimza.library.entities.UserEntity;
 import lombok.SneakyThrows;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 public class PrepareStatementDB {
@@ -25,6 +26,7 @@ public class PrepareStatementDB {
         PreparedStatement prStatement = ConnectionToDB.getConnection()
                 .prepareStatement("delete from users where id = ?");
         prStatement.setInt(1, id);
+
         return prStatement;
     }
 
@@ -42,8 +44,8 @@ public class PrepareStatementDB {
 
     @SneakyThrows
     public PreparedStatement readUser(int id) {
-        PreparedStatement prStatement = ConnectionToDB.getConnection()
-                .prepareStatement("select * from users where id = ?");
+        Connection connection = ConnectionToDB.getConnection();
+        PreparedStatement prStatement = connection.prepareStatement("select * from users u join books b on u.id = b.who_taken where u.id = ?");
         prStatement.setInt(1, id);
         return prStatement;
     }
@@ -109,7 +111,33 @@ public class PrepareStatementDB {
         psStatement.setBoolean(3, updatedBook.isTaken());
         return psStatement;
 
+    }
 
+    @SneakyThrows
+    public PreparedStatement assignOwner(int id,int idOwner){
+        PreparedStatement preparedStatement = ConnectionToDB.getConnection()
+                .prepareStatement("update books set who_taken = ?, taken = ? where id = ?");
+        preparedStatement.setInt(1,idOwner);
+        preparedStatement.setBoolean(2,true);
+        preparedStatement.setInt(3,id);
+        return preparedStatement;
+
+    }
+
+    @SneakyThrows
+    public PreparedStatement removeOwner(int id) {
+        PreparedStatement preparedStatement = ConnectionToDB.getConnection()
+                .prepareStatement("update books set who_taken = null, taken = default where id = ?");
+        preparedStatement.setInt(1,id);
+        return preparedStatement;
+    }
+
+    @SneakyThrows
+    public PreparedStatement removeOwnerByIdOwner(int idOwner) {
+        PreparedStatement preparedStatement = ConnectionToDB.getConnection()
+                .prepareStatement("update books set taken = default where who_taken = ?");
+        preparedStatement.setInt(1,idOwner);
+        return preparedStatement;
     }
 
 }

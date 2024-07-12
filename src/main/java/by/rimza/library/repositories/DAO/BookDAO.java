@@ -1,6 +1,7 @@
 package by.rimza.library.repositories.DAO;
 
 import by.rimza.library.entities.BookEntity;
+import by.rimza.library.repositories.connectionDB.ConnectionToDB;
 import by.rimza.library.repositories.connectionDB.PrepareStatementDB;
 import by.rimza.library.repositories.connectionDB.StatementDB;
 import by.rimza.library.repositories.mappers.MapperUtils;
@@ -25,8 +26,9 @@ public class BookDAO implements DAO<BookEntity> {
         List<BookEntity> books = new ArrayList<>();
         Statement statement = statementDB.createStatement();
         ResultSet resultSet = statement.executeQuery("select * from books");
+
         while (resultSet.next()) {
-            books.add(MapperUtils.toBookEntity(resultSet));
+            books.add(MapperUtils.toBookEntity(resultSet, false));
         }
         return books;
     }
@@ -38,8 +40,9 @@ public class BookDAO implements DAO<BookEntity> {
         BookEntity book = null;
         PreparedStatement ps = prStatement.readBook(id);
         ResultSet resultSet = ps.executeQuery();
+
         while (resultSet.next()) {
-            book = MapperUtils.toBookEntity(resultSet);
+            book = MapperUtils.toBookEntity(resultSet, false);
         }
         return book;
     }
@@ -50,8 +53,9 @@ public class BookDAO implements DAO<BookEntity> {
         BookEntity book = null;
         PreparedStatement ps = prStatement.readBook(title);
         ResultSet resultSet = ps.executeQuery();
+
         while (resultSet.next()) {
-            book = MapperUtils.toBookEntity(resultSet);
+            book = MapperUtils.toBookEntity(resultSet,false);
         }
         return book;
     }
@@ -62,7 +66,8 @@ public class BookDAO implements DAO<BookEntity> {
     public boolean delete(int id) {
         checkPrStatement();
         PreparedStatement ps = prStatement.deleteBook(id);
-        ps.executeQuery();
+        ps.executeUpdate();
+
         return false;
     }
 
@@ -72,6 +77,7 @@ public class BookDAO implements DAO<BookEntity> {
         checkPrStatement();
         PreparedStatement ps = prStatement.createBook(bookEntity);
         ps.executeUpdate();
+
         return true;
     }
 
@@ -81,7 +87,27 @@ public class BookDAO implements DAO<BookEntity> {
         checkPrStatement();
         PreparedStatement ps = prStatement.updateBook(id, updatedBook);
         ps.executeUpdate();
+
         return true;
+    }
+
+    @SneakyThrows
+    public void assignOwner(int id, int idOwner){
+        checkPrStatement();
+        if (idOwner <=0){
+            throw new IllegalArgumentException("Индекс должен быть больше нуля");
+        }
+        PreparedStatement ps = prStatement.assignOwner(id, idOwner);
+        ps.executeUpdate();
+
+    }
+
+    @SneakyThrows
+    public void removeOwner(int id){
+        checkPrStatement();
+        PreparedStatement ps = prStatement.removeOwner(id);
+        ps.executeUpdate();
+
     }
 
     @SneakyThrows
@@ -89,6 +115,7 @@ public class BookDAO implements DAO<BookEntity> {
     public void clear() {
         checkStatement();
         statementDB.createStatement().execute("truncate table books");
+        statementDB.createStatement().execute("alter sequence books_id_seq restart with 1");
     }
 
     private void checkStatement() {
